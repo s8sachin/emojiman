@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+<link rel="stylesheet" href="./index.css">
+<script src="./js/jquery.js" ></script>
+</head>
+<body>
+
+<div class="mainDiv">
+  <div id="homeDiv">
+    <audio id="gameMusic" hidden autoplay controls preload="metadata">
+      <source src="./media/game_music.ogg" type="audio/ogg">
+      <source src="./media/game_music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <div class="chances">
+      <div></div>
+      <div style="position: relative; height: 22px;">
+        <img id="musicToggle" src="./media/music_icon.png" class="audio-pause" style="" />
+      </div>
+    </div>
+    <h1 class="text-align-center" style="color: brown;">HANG MAN</h1>
+    <button id="playBtn" class="actionBtn bottomBtn">PLAY</button>
+  </div>
+
+  <div id="infoDiv" hidden>
+    <div class="infoDivInfo">
+      <div class="instruction text-align-center">Instructions :</div>
+      <div style="padding: 20px; height: 300px;">
+        What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has
+        <br />
+        <img src="./media/inst_smiley.png" style="float: right; margin-top: 100px;" />
+      </div>
+    </div>
+    <button id="continueBtn" class="actionBtn bottomBtn">CONTINUE</button>
+  </div>
+
+  <div hidden id="gameDiv">
+    <div id="lifeDiv" style="height: 30px;">
+      <div class="lifeSmileyDiv"><span class="usedLife" hidden>X</span></div>
+      <div class="lifeSmileyDiv"><span class="usedLife" hidden>X</span></div>
+      <div class="lifeSmileyDiv"><span class="usedLife" hidden>X</span></div>
+      <div class="lifeSmileyDiv"><span class="usedLife" hidden>X</span></div>
+      <div class="lifeSmileyDiv"><span class="usedLife" hidden>X</span></div>
+    </div>
+
+    <div id="question"></div>
+    <div hidden id="quesDesc"></div>
+
+    <div class="question-smiley-div">
+      <img src="./media/smiley.png" id="reactiveEmoji" style="position: relative;" />
+    </div>
+
+    <div id="ansHintDiv">
+      <div id="answer"></div>
+      <div class="hintGroup">
+        <button id="hintBtn">HINT</button>
+        <span id="hintVal"></span>
+      </div>
+  
+      <div id="keyboard"></div>
+    </div>
+    <button hidden id="nextQues" class="actionBtn bottomBtn">NEXT</button>
+
+  </div>
+
+</div>
+
+</body>
+<script>
+  const quizList = [{
+    question: 'Question 1 ?',
+    answer: 'heyman',
+    hints: ['a', 'b', 'c'],
+    description: 'final description'
+  },{
+    question: 'ques 2',
+    answer: 'robb',
+    hints: ['ddd', 'bsd', 'cew'],
+    description: 'final description of ques 2'
+  },{
+    question: 'ques 3',
+    answer: 'robb',
+    hints: ['ddd', 'bsd', 'cew'],
+    description: 'final description of ques 2'
+  }];
+
+  $(document).ready(function(){
+    // $('#gameMusic')[0].play();
+
+    const loadChars = () => {
+      window.life = 5;
+      $('#hintVal').removeAttr('hintIdx').text('');
+      const lineChars = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+
+      const [l1, l2, l3] = lineChars.map(lineChar => {
+        let line = lineChar.split('').map(ch => `<button class="keyBtn">${ch}</button>`).join('');
+        return `<div style="display: flex; justify-content: center">${line}</div>`;
+      });
+
+      $('#keyboard').append(l1, l2, l3);
+    };
+    
+    const loadQuestion = (quesIdx) => {
+      $('#answer').children().remove();
+      
+      $('#question').text(quizList[quesIdx].question);
+      const answerArr = quizList[quesIdx].answer.split('');
+      const ansEl = answerArr.map(char => `<div class="answerText"><span hidden class="ansChar">${char}</span></div>`).join('');
+      $('#answer').append(ansEl);
+      $('#quesDesc').text(quizList[quesIdx].description);
+      window.currentQuesIdx = quesIdx;
+      
+      // $('.keyBtn').each(e => e.currentTarget.removeAttr('disabled'));
+    }
+
+    const init = () => {
+      loadQuestion(0);
+      loadChars();
+    }
+
+    init();
+
+    const reset = () => {
+      window.life = 5;
+      $('.keyBtn').each(function() {
+        $(this).removeAttr('disabled')
+      });
+      $('.usedLife').hide();
+      $('#reactiveEmoji').removeClass('sadEmojiSection');
+      $('#reactiveEmoji').addClass('happyEmojiSection');
+      $('#reactiveEmoji').css('right', 0);
+    }
+
+
+    $('#musicToggle').on('click', () => {
+      const audio = $('#gameMusic');
+      if (audio.attr('play') === 'true') {
+        audio[0].pause();
+        audio.attr('play', 'false');
+        $('#musicToggle').removeClass('audio-play');
+        $('#musicToggle').addClass('audio-pause');
+      } else {
+        audio[0].play();
+        audio.attr('play', 'true');
+        $('#musicToggle').addClass('audio-play');
+        $('#musicToggle').removeClass('audio-pause');
+      }
+    });
+
+    $('#playBtn').on('click', () => {
+      $('#infoDiv').show();
+      $('#homeDiv').hide();
+    });
+
+    $('#continueBtn').on('click', () => {
+      $('#homeDiv').hide();
+      $('#infoDiv').hide();
+      $('#gameDiv').show();
+      loadQuestion(0);
+    });
+
+    /** Change Hint */
+    $('#hintBtn').on('click', () => {
+      const hints = quizList[window.currentQuesIdx].hints;
+      const currentHintIdx = $('#hintVal').attr('hintIdx');
+      const hintIdx = currentHintIdx ? (parseInt(currentHintIdx) + 1) : 0;
+      const hint = hints[hintIdx];
+      $('#hintVal').attr('hintIdx', hintIdx).text(hint);
+    });
+
+    $('.keyBtn').on('click', function(e) {
+      if (window.life > 0) {
+        $(e.currentTarget).attr('disabled', true);
+        const pressedText = $(this).text().toLowerCase();
+        let passed = false;
+        $('.ansChar').each(function() {
+          if($(this).text().toLowerCase() === pressedText) {
+            $(this).show();
+            passed = true;
+          }
+        });
+        const happySadVal = ($('.ansChar:visible').length / $('.ansChar').length) * 100;
+        console.log(Math.floor(happySadVal * (20/100)))
+        const moveVal = 120 * Math.floor(happySadVal * (20/100));
+        if (passed !== true) {
+          window.life = window.life - 1;
+          $($('.usedLife')[5 - window.life - 1]).show();
+          $('#reactiveEmoji').addClass('sadEmojiSection');
+          $('#reactiveEmoji').removeClass('happyEmojiSection');
+          $('#reactiveEmoji').css('right', Math.min(moveVal, 470));
+        } else {
+          $('#reactiveEmoji').addClass('happyEmojiSection');
+          $('#reactiveEmoji').removeClass('sadEmojiSection');
+          $('#reactiveEmoji').css('right', Math.min(moveVal, 470));
+        }
+      }
+      if ((window.life === 0) || ($('.ansChar:hidden').length === 0)) {
+        $('#ansHintDiv, #lifeDiv, #question').hide();
+        $('#nextQues, #quesDesc').show();
+      }
+    });
+
+    $('#nextQues').on('click', () => {
+      window.currentQuesIdx = window.window.currentQuesIdx + 1;
+      if (window.currentQuesIdx < quizList.length) {
+        loadQuestion(window.currentQuesIdx);
+        $('#ansHintDiv, #lifeDiv, #question').show();
+        $('#nextQues, #quesDesc').hide();
+        reset();
+      }
+    });
+
+  });
+</script>
+</html>
